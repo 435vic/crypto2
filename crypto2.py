@@ -1,10 +1,13 @@
 import argparse
-import tkinter as tk
+from getpass import getpass
 from time import sleep
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 
 import Cryptodome
 
 import utils
+from aes import decrypt, encrypt
 from utils import clear, title
 from window import Window
 
@@ -23,16 +26,48 @@ def AES():
         if action in ['1', 'encrypt', 'e']:
             title('AES Encryption / Decryption', fillchar='-')
             print(); print()
-            
+            print('Please select a file in the dialog box.')
+            Tk().withdraw()
+            filename = askopenfilename(initialdir='~', title='Choose a file to encrypt...')
+            password = getpass('Enter password for file: ').encode('utf-8')
+            print('Choose the name for the encrypted file.')
+            outfilename = asksaveasfilename(initialdir='~', title='Choose the name for the encrypted file...')
+            chunksize = input('Enter encryption chunksize: ') or None
+            if chunksize:
+                chunksize = int(chunksize)
+            encrypt(password, filename, outfilename, chunksize)
 
         elif action in ['2', 'decrypt', 'd']:
-            pass
+            title('AES Encryption / Decryption', fillchar='-')
+            print(); print()
+            print('Please select a file in the dialog box.')
+            Tk().withdraw()
+            filename = askopenfilename(initialdir='~', title='Choose a file to decrypt...')
+            password = getpass('Enter password to decrpyt file: ').encode('utf-8')
+            print('Choose the name for the output file.')
+            outfilename = asksaveasfilename(initialdir='~', title='Choose the name for the decrypted file...')
+            chunksize = input('Enter decryption chunksize: ') or None
+            if chunksize:
+                chunksize = int(chunksize)
+            decrypt(password, filename, outfilename, chunksize)
+
         elif action in ['3', 'exit', 'quit', 'q']:
-            pass
+            exit(0)
+
         else:
             clear()
             _tmp = input('Dude. That is not an action.')
 
+def RSA(action):
+    if action == 'g':
+        pass
+
+    elif action == 'ed':
+        pass
+    elif action == 's':
+        pass
+    else:
+        print('Invalid action: \'%s\' in RSA()' % action)
 
 #TODO: Look at default port in python: attach command 
 parser = argparse.ArgumentParser(description="AES and RSA cryptography tools")

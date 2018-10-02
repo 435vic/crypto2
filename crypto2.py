@@ -1,15 +1,16 @@
 import argparse
+import os
 from getpass import getpass
 from time import sleep
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.filedialog import askdirectory, askopenfilename, asksaveasfilename
 
 import Cryptodome
 
 import utils
-from aes import decrypt, encrypt
+import aes
+import rsa
 from utils import clear, title
-from window import Window
 
 
 def AES():
@@ -35,7 +36,7 @@ def AES():
             chunksize = input('Enter encryption chunksize: ') or None
             if chunksize:
                 chunksize = int(chunksize)
-            encrypt(password, filename, outfilename, chunksize)
+            aes.encrypt(password, filename, outfilename, chunksize)
 
         elif action in ['2', 'decrypt', 'd']:
             title('AES Encryption / Decryption', fillchar='-')
@@ -49,25 +50,82 @@ def AES():
             chunksize = input('Enter decryption chunksize: ') or None
             if chunksize:
                 chunksize = int(chunksize)
-            decrypt(password, filename, outfilename, chunksize)
+
+            aes.decrypt(password, filename, outfilename, chunksize)
 
         elif action in ['3', 'exit', 'quit', 'q']:
             exit(0)
 
         else:
             clear()
-            _tmp = input('Dude. That is not an action.')
+            _tmp = input('That is not an action.')
 
 def RSA(action):
-    if action == 'g':
-        pass
+    if action == '2':
+        title('RSA keygen', fillchar='-')
+        print(); print()
+        print('Select directory for the keys.')
+        Tk().withdraw()
+        while True:
+            outfolder = askdirectory(initialdir='~', title='Select directory to save keys in...')
+            if not outfolder:
+                print('Please choose a directory.')
+            else:
+                if not os.path.exists(outfolder):
+                    os.makedirs(outfolder, exist_ok=True)
+                break
 
-    elif action == 'ed':
-        pass
-    elif action == 's':
+        bits = int(input('Size of the key (default is 2048): ') or 2048)
+        rsa.generate(bits, outfolder)
+
+    elif action == '3':
+        title('RSA Encryption / Decryption', fillchar='-')
+        [print() for i in range(8)]
+        print('Do you want to...')
+        print('1. Encrypt a file')
+        print('2. Decrypt a file')
+        print('3. Exit')
+        print('_' * utils.get_terminal_size()[0])
+        print()
+        action = input('>> ').lower()
+        if action == '1':
+            title('RSA Encryption / Decryption', fillchar='-')
+            print(); print()
+            print('Select a file to encrypt in the dialog box.')
+            Tk().withdraw()
+            filename = askopenfilename(initialdir='~', title='Choose a file to encrypt...')
+            print('Select the public key to encrypt the file with.')
+            Tk().withdraw()
+            keypath = askopenfilename(initialdir='~', title='Choose a public key...')
+            print('Select the name for the encrypted file.')
+            Tk().widthdraw()
+            outfile = asksaveasfilename(initialdir='~', title='Save as...')
+            chunksize = input('Select chunksize (leave empty for default): ') or None
+            rsa.encrypt(keypath, filename, outfile, chunksize)
+        
+        elif action == '2':
+            title('RSA Encryption / Decryption', fillchar='-')
+            print(); print()
+            print('Select a file to decrypt in the dialog box.')
+            Tk().withdraw()
+            filename = askopenfilename(initialdir='~', title='Choose a file to decrypt...')
+            print('Select the private key to decrypt the file with.')
+            Tk().withdraw()
+            keypath = askopenfilename(initialdir='~', title='Choose a private key...')
+            print('Select the encrypted key file used to encrypt the file.')
+            Tk().withdraw()
+            keyfilepath = askopenfilename(initialdir='~', title='Choose the encrypted key file...')
+            print('Select the name for the decrypted file.')
+            Tk().widthdraw()
+            outfile = asksaveasfilename(initialdir='~', title='Save as...')
+            chunksize = input('Select chunksize (leave empty for default): ') or None
+            rsa.decrypt(keypath, filename, keyfilepath, outfile, chunksize)
+
+
+    elif action == '4':
         pass
     else:
-        print('Invalid action: \'%s\' in RSA()' % action)
+        TypeError('invalid action: \'%s\' in RSA()')
 
 #TODO: Look at default port in python: attach command 
 parser = argparse.ArgumentParser(description="AES and RSA cryptography tools")
@@ -102,5 +160,7 @@ except KeyboardInterrupt:
 if action == 'q' or action == 'quit':
     clear()
     exit(0)
-elif action == '1':
+elif action in ['1', 'aes']:
     AES()
+elif action in ['2', '3', '4']:
+    RSA(action)

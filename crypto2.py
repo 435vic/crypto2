@@ -34,7 +34,7 @@ def AES():
             password = getpass('Enter password for file: ').encode('utf-8')
             print('Choose the name for the encrypted file.')
             outfilename = asksaveasfilename(initialdir=cwd, title='Choose the name for the encrypted file...')
-            chunksize = input('Enter encryption chunksize: ') or None
+            chunksize = input('Enter encryption chunksize: ') or 64 * 1024
             if chunksize:
                 chunksize = int(chunksize)
             aes.encrypt(password, filename, outfilename, chunksize)
@@ -48,7 +48,7 @@ def AES():
             password = getpass('Enter password to decrpyt file: ').encode('utf-8')
             print('Choose the name for the output file.')
             outfilename = asksaveasfilename(initialdir=cwd, title='Choose the name for the decrypted file...')
-            chunksize = input('Enter decryption chunksize: ') or None
+            chunksize = input('Enter decryption chunksize: ') or 24 * 1024
             if chunksize:
                 chunksize = int(chunksize)
 
@@ -103,9 +103,12 @@ def RSA(action):
             print('Select the name for the encrypted file.')
             Tk().withdraw()
             outfile = asksaveasfilename(initialdir=cwd, title='Save as...')
+            print('Select the name for the encrypted key.')
+            Tk().withdraw()
+            outkeyfile = asksaveasfilename(initialdir=cwd, title='Save as...')
             print(outfile)
-            chunksize = input('Select chunksize (leave empty for default): ') or None
-            rsa.encrypt(keypath, filename, outfile, chunksize)
+            chunksize = input('Select chunksize (leave empty for default): ') or 64 * 1024
+            rsa.encrypt(keypath, filename, outfile, outkeyfile, chunksize)
         
         elif action == '2':
             title('RSA Encryption / Decryption', fillchar='-')
@@ -126,7 +129,7 @@ def RSA(action):
             Tk().withdraw()
             outfile = asksaveasfilename(initialdir=cwd, title='Save as...')
             print(outfile)
-            chunksize = input('Select chunksize (leave empty for default): ') or None
+            chunksize = input('Select chunksize (leave empty for default): ') or 24 * 1024
             rsa.decrypt(keypath, filename, keyfilepath, outfile, chunksize)
 
         elif action == '3':
@@ -181,7 +184,7 @@ def RSA(action):
             elif not valid:
                 clear()
                 print('FILE AUTHENTICITY COULD NOT BE VERIFIED!')
-                print('Someone did something nasty! Do not trust the file or its sender.')
+                print('Do not trust the file or its sender. Did you use the correct public key?')
                 print('Error: Verification failed. Authenticity of file could not be verified.')
             
 
@@ -191,12 +194,11 @@ def RSA(action):
     else:
         TypeError('invalid action: \'%s\' in RSA()')
 
-#TODO: Look at default port in python: attach command 
 parser = argparse.ArgumentParser(description="AES and RSA cryptography tools")
 parser.add_argument('--debug', help="Wait for debugger to attach on port (default is 3000)",
                                dest='port',
                                default=None,
-                               const='3000',
+                               const='5768',
                                nargs='?',
                                type=int)
 args = parser.parse_args()

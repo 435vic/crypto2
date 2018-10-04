@@ -27,13 +27,13 @@ def encrypt(pubKeyPath, filename, encfilename=None, keyfilename=None, chunksize=
     with open(pubKeyPath, 'rb') as f:
         pubKey = RSA.import_key(f.read())
 
-    aes.encrypt(aeskey, filename, encfilename, chunksize)
     rsa_enc = PKCS1_OAEP.new(pubKey)
     encKey = rsa_enc.encrypt(aeskey)
     PEMKey = PEM.encode(encKey, 'ENCRYPTED KEY')
     with open(keyfilename, 'w') as out:
         out.write(PEMKey)
-
+    
+    aes.encrypt(aeskey, filename, encfilename, chunksize)
 
 def decrypt(privKeyPath, encfilename, keyfilename, outfilename=None, chunksize=24*1024):
     if not outfilename:

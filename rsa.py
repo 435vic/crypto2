@@ -32,8 +32,9 @@ def encrypt(pubKeyPath, filename, encfilename=None, keyfilename=None, chunksize=
     PEMKey = PEM.encode(encKey, 'ENCRYPTED KEY')
     with open(keyfilename, 'w') as out:
         out.write(PEMKey)
-    
+
     aes.encrypt(aeskey, filename, encfilename, chunksize)
+
 
 def decrypt(privKeyPath, encfilename, keyfilename, outfilename=None, chunksize=24*1024):
     if not outfilename:

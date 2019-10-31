@@ -10,10 +10,10 @@ def generate(bits, keysFolder):
     keys = RSA.generate(bits)
     priv = keys.export_key()
     pub = keys.publickey().export_key()
-    with open('%s/public.pem' % keysFolder, 'wb') as f:
+    with open('%s/rsa.pub' % keysFolder, 'wb') as f:
         f.write(pub)
 
-    with open('%s/private.pem' % keysFolder, 'wb') as f:
+    with open('%s/rsa' % keysFolder, 'wb') as f:
         f.write(priv)
 
 

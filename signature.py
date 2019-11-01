@@ -4,7 +4,7 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome import Random
 from Cryptodome.IO import PEM
 
-def sign(fileIn, privKeyPath, signatureOut=None):
+def sign(fileIn, privKeyPath, signatureOut=None, return_signature=False):
     if not signatureOut:
         signatureOut = fileIn + '.sign'
     
@@ -16,6 +16,8 @@ def sign(fileIn, privKeyPath, signatureOut=None):
     
     dataHash = SHA512.new(data)
     signature = pss.new(privKey).sign(dataHash)
+    if return_signature:
+        return signature
     with open(signatureOut, 'w') as f:
         f.write(PEM.encode(signature, 'PKCS1-PSS SIGNATURE'))
 

@@ -1,5 +1,5 @@
-# Plan file
-plans.txt
+# Secret stuff. Mine only
+exclude/
 
 # Vscode configuration files
 .vscode/settings.json

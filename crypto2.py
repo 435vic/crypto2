@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import os.path
 from getpass import getpass
 from time import sleep
 from tkinter import Tk
@@ -14,9 +15,11 @@ import rsa
 from utils import clear, title
 
 cwd = os.getcwd
+dircache = cwd
 
 def AES():
     while True:
+        dircache = cwd    
         title('AES Encryption / Decryption', fillchar='-')
         [print() for i in range(5)]
         print('Do you want to...')
@@ -31,24 +34,32 @@ def AES():
             print(); print()
             print('Please select a file in the dialog box.')
             Tk().withdraw()
-            filename = askopenfilename(initialdir=cwd, title='Choose a file to encrypt...')
+            filename = askopenfilename(initialdir=dircache, title='Choose a file to encrypt...')
+            dircache = os.path.splitext(filename)[0]
             password = getpass('Enter password for file: ').encode('utf-8')
-            print('Choose the name for the encrypted file.')
-            outfilename = asksaveasfilename(initialdir=cwd, title='Choose the name for the encrypted file...')
+            privKey = input('Would you like to sign the file? (requires RSA private key) [Y/N]: ') or 'N'
+            if privKey == 'Y':
+                privKey = askopenfilename(initialdir=dircache, title='Choose private key...')
+                dircache = os.path.splitext(privKey)[0]
+            else:
+                privKey = None
+
             chunksize = input('Enter encryption chunksize: ') or 64 * 1024
             if chunksize:
                 chunksize = int(chunksize)
-            aes.encrypt(password, filename, outfilename, chunksize)
+            aes.encrypt(password, filename, chunksize=chunksize, signature_privKey=privKey)
 
         elif action in ['2', 'decrypt', 'd']:
             title('AES Encryption / Decryption', fillchar='-')
             print(); print()
             print('Please select a file in the dialog box.')
             Tk().withdraw()
-            filename = askopenfilename(initialdir=cwd, title='Choose a file to decrypt...')
+            filename = askopenfilename(initialdir=dircache, title='Choose a file to decrypt...')
+            dircache = os.path.splitext(filename)[0]            
             password = getpass('Enter password to decrpyt file: ').encode('utf-8')
             print('Choose the name for the output file.')
-            outfilename = asksaveasfilename(initialdir=cwd, title='Choose the name for the decrypted file...')
+            outfilename = asksaveasfilename(initialdir=dircache, title='Choose the name for the decrypted file...')
+            dircache = os.path.splitext(outfilename)[0]
             chunksize = input('Enter decryption chunksize: ') or 24 * 1024
             if chunksize:
                 chunksize = int(chunksize)
@@ -100,16 +111,13 @@ def RSA(action):
             print('Select the public key to encrypt the file with.')
             Tk().withdraw()
             keypath = askopenfilename(initialdir=cwd, title='Choose a public key...')
+            dircache = os.path.splitext(keypath)[0]
             print(keypath)
-            print('Select the name for the encrypted file.')
-            Tk().withdraw()
-            outfile = asksaveasfilename(initialdir=cwd, title='Save as...')
-            print('Select the name for the encrypted key.')
-            Tk().withdraw()
-            outkeyfile = asksaveasfilename(initialdir=cwd, title='Save as...')
-            print(outfile)
+            print('Select private key for signing.')
+            privkeypath = askopenfilename(initialdir=dircache, title='Choose a private key...')
+            print(privkeypath)
             chunksize = input('Select chunksize (leave empty for default): ') or 64 * 1024
-            rsa.encrypt(keypath, filename, outfile, outkeyfile, chunksize)
+            rsa.encrypt(keypath, privkeypath, filename, outfile, outkeyfile, chunksize)
         
         elif action == '2':
             title('RSA Encryption / Decryption', fillchar='-')

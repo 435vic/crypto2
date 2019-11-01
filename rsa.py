@@ -2,6 +2,7 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Cipher import PKCS1_OAEP
 import aes
+from fileformat import write_crypt2
 from Cryptodome.IO import PEM
 from os.path import splitext
 
@@ -17,23 +18,19 @@ def generate(bits, keysFolder):
         f.write(priv)
 
 
-def encrypt(pubKeyPath, filename, encfilename=None, keyfilename=None, chunksize=64*1024):
-    if not encfilename:
-        encfilename = filename + '.crypt'
-    if not keyfilename:
-        keyfilename = filename + '.key'
-
+def encrypt(pubKeyPath, privKeyPath, filename, keyfilename=None, chunksize=64*1024):
     aeskey = get_random_bytes(32)
     with open(pubKeyPath, 'rb') as f:
         pubKey = RSA.import_key(f.read())
 
+    with open(privKeyPath, 'rb') as f:
+        privKey = RSA.import_key(f.read())
+
     rsa_enc = PKCS1_OAEP.new(pubKey)
     encKey = rsa_enc.encrypt(aeskey)
-    PEMKey = PEM.encode(encKey, 'ENCRYPTED KEY')
-    with open(keyfilename, 'w') as out:
-        out.write(PEMKey)
-
-    aes.encrypt(aeskey, filename, encfilename, chunksize)
+    
+    encrypted, iv, origsize, signature = aes.encrypt(aeskey, filename, encfilename, privKeyPath, chunksize)
+    write_crypt2(filename + '.crypt2', encrypted, iv, origsize, signature, rsaKey=encKey)
 
 
 def decrypt(privKeyPath, encfilename, keyfilename, outfilename=None, chunksize=24*1024):
